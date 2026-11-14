@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Formato y sintaxis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Comprobar formato con StyLua
+        uses: JohnnyMorganz/stylua-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: 2.6.0
+          args: --check .
+
+      - name: Instalar herramientas
+        # Neovim usa LuaJIT, así que la sintaxis se valida con luajit y no con luac5.1.
+        run: sudo apt-get update && sudo apt-get install -y luajit jq
+
+      - name: Validar sintaxis, JSON y coherencia (check.sh)
+        run: ./check.sh
+
+  neovim:
+    name: Arranque en Neovim
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: stable
+
+      - name: Usar este repositorio como ~/.config/nvim
+        run: |
+          mkdir -p ~/.config
+          ln -s "$GITHUB_WORKSPACE" ~/.config/nvim
+
+      - name: Cachear plugins
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/nvim/lazy
+          key: lazy-${{ runner.os }}-${{ hashFiles('lazy-lock.json') }}
+
+      - name: Restaurar plugins según lazy-lock.json
+        run: nvim --headless "+Lazy! restore" +qa
+
+      - name: Prueba de humo (tema, grupos y :checkhealth ink)
+        run: nvim --headless "+luafile tests/smoke.lua" +qa

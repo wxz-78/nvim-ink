@@ -1,0 +1,13 @@
+# Temporales de Neovim y del sistema
+*.swp
+*.swo
+*~
+tags
+doc/tags
+.DS_Store
+
+# Pruebas y depuración locales
+.tests
+debug
+.repro
+*.log
