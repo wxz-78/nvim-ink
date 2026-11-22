@@ -47,7 +47,7 @@ fi
 
 echo "JSON"
 if command -v jq > /dev/null 2>&1; then
-    for f in *.json .neoconf.json; do
+    for f in *.json; do
         [ -e "$f" ] || continue
         jq empty "$f" 2> /dev/null && ok "$f" || bad "$f"
     done

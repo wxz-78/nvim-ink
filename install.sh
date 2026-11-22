@@ -44,7 +44,7 @@ done
 
 DEST="${XDG_CONFIG_HOME:-$HOME/.config}/nvim"
 # Solo lo que Neovim necesita; no se copian .git, .github, tests ni scripts.
-ITEMS=(init.lua colors lua lazy-lock.json lazyvim.json .neoconf.json stylua.toml .editorconfig)
+ITEMS=(init.lua colors lua lazy-lock.json lazyvim.json stylua.toml .editorconfig)
 # Binarios que LazyVim y Mason necesitan (deben coincidir con lua/ink/deps.lua; lo vigila check.sh).
 DEPS=(git rg fd gcc node npm tree-sitter lazygit)
 # Versión mínima de Neovim que exige LazyVim.
@@ -184,6 +184,13 @@ install_config() {
         return 0
     fi
 
+    # LazyVim guarda en `news` qué avisos ya mostró. Si no lo conservamos,
+    # cada reinstallación vuelve a enseñar el NEWS.md como si fuera la primera.
+    local old_news=""
+    if [ "$DRY_RUN" = 0 ] && have jq && [ -f "$DEST/lazyvim.json" ]; then
+        old_news="$(jq -c '.news // {}' "$DEST/lazyvim.json" 2> /dev/null || printf '{}')"
+    fi
+
     if [ -e "$DEST" ] || [ -L "$DEST" ]; then
         local backup="$DEST.bak-$(date +%Y%m%d-%H%M%S)"
         info "Copia de seguridad: $DEST -> $backup"
@@ -195,6 +202,16 @@ install_config() {
     for item in "${ITEMS[@]}"; do
         [ -e "$item" ] && run cp -a "$item" "$DEST/"
     done
+
+    if [ -n "$old_news" ] && [ "$old_news" != "{}" ] && have jq; then
+        local tmp="$DEST/lazyvim.json.tmp"
+        if jq --argjson news "$old_news" '.news = ($news + .news)' "$DEST/lazyvim.json" > "$tmp" 2> /dev/null; then
+            mv "$tmp" "$DEST/lazyvim.json"
+            info "Avisos de LazyVim ya leídos conservados"
+        else
+            rm -f "$tmp"
+        fi
+    fi
     return 0
 }
 

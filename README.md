@@ -49,6 +49,8 @@ Para comprobar que todo está en su sitio:
 
 Para desarrollar (o clonar directamente en `~/.config/nvim`, sin copiar), `./check.sh` valida sintaxis Lua,
 variables globales sin declarar (un `local` olvidado), formato, JSON y que `install.sh`, `lua/ink/deps.lua` y los módulos de `lua/ink/groups/` sean coherentes.
+`tests/smoke.lua` (el que usa el CI) comprueba además el tema, `:InkSemantic`/`:InkTransparent`/`:InkReload`,
+los atajos propios, el recorte al guardar con sus excepciones y que todas las especificaciones de resaltado sean válidas.
 Si tienes el repo `labwc-ink` al lado (o `INK_FOOT=/ruta/a/foot.ini`), también comprueba que los 16 colores
 ANSI de `palette.lua` coinciden con los de `foot.ini`.
 
@@ -108,9 +110,9 @@ sale un aviso con la lista (`lua/ink/deps.lua`). No aparece en modo headless; pa
 
 **Ajustes:** `scrolloff` 8, guía en la columna 120 (igual que StyLua), espacios al final de línea eliminados al guardar
 (salvo Markdown/MDX, correo, diffs, vimwiki y buffers especiales; se puede desactivar por buffer con
-`:lua vim.b.ink_no_trim = true`), recarga de archivos modificados fuera de Neovim, ortografía en inglés y español,
-ventanas flotantes redondeadas en Neovim 0.11+, sin animaciones y sin comprobación periódica de actualizaciones
-(`:Lazy sync` cuando quieras).
+`:lua vim.b.ink_no_trim = true`), recarga de archivos modificados fuera de Neovim, ortografía en inglés y español
+(Neovim pedirá descargar los diccionarios la primera vez que actives `:set spell`), ventanas flotantes redondeadas en
+Neovim 0.11+, sin animaciones y sin comprobación periódica de actualizaciones (`:Lazy sync` cuando quieras).
 
 ## Actualizar y reproducir
 
